@@ -2,11 +2,11 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
 <title>Canvas Collab</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%;font-family:system-ui,sans-serif;background:#111;color:#eee}
+html,body{height:100%;font-family:system-ui,sans-serif;background:#111;color:#eee;overflow:hidden}
 #app{height:100vh;display:flex;flex-direction:column}
 .screen{display:none;flex-direction:column;height:100%}
 .screen.active{display:flex}
@@ -16,39 +16,36 @@ html,body{height:100%;font-family:system-ui,sans-serif;background:#111;color:#ee
 .card{background:#1e1e1e;border:1px solid #333;border-radius:12px;padding:1.5rem;width:100%;max-width:360px}
 .card h2{font-size:13px;font-weight:500;color:#666;margin-bottom:14px;text-transform:uppercase;letter-spacing:.06em}
 .btn{border-radius:8px;padding:12px 18px;font-size:14px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .15s;width:100%;border:none}
-.btn-white{background:#fff;color:#111}
-.btn-white:hover{background:#e8e8e8}
-.btn-outline{background:transparent;color:#eee;border:1px solid #444}
-.btn-outline:hover{background:#222}
+.btn-white{background:#fff;color:#111}.btn-white:hover{background:#e8e8e8}
+.btn-outline{background:transparent;color:#eee;border:1px solid #444}.btn-outline:hover{background:#222}
 .inp{width:100%;padding:11px 14px;border:1px solid #444;border-radius:8px;font-size:15px;background:#2a2a2a;color:#fff;outline:none;margin-bottom:10px}
 .inp:focus{border-color:#666}
 .err{color:#f87171;font-size:12px;margin-top:6px;min-height:16px}
-#canvas-screen{flex:1;height:100%}
-.toolbar{display:flex;align-items:center;gap:6px;padding:8px 12px;border-bottom:1px solid #2a2a2a;background:#1a1a1a;flex-wrap:wrap}
-.sess-badge{background:#2a2a2a;border:1px solid #333;border-radius:8px;padding:4px 10px;font-size:12px;color:#888;display:flex;align-items:center;gap:6px}
+#canvas-screen{flex:1;overflow:hidden}
+.toolbar{display:flex;align-items:center;gap:5px;padding:7px 10px;border-bottom:1px solid #2a2a2a;background:#1a1a1a;flex-wrap:wrap;flex-shrink:0}
+.sess-badge{background:#2a2a2a;border:1px solid #333;border-radius:8px;padding:4px 9px;font-size:12px;color:#888;display:flex;align-items:center;gap:5px}
 .sess-badge b{color:#fff;letter-spacing:.1em;font-size:13px}
-.online-dot{width:7px;height:7px;border-radius:50%;background:#22c55e;display:inline-block;animation:pulse 1.5s infinite}
+.online-dot{width:7px;height:7px;border-radius:50%;background:#22c55e;animation:pulse 1.5s infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
-.sep{width:1px;height:22px;background:#333;margin:0 2px;flex-shrink:0}
-.tbtn{background:none;border:1px solid transparent;border-radius:7px;padding:6px 9px;cursor:pointer;font-size:13px;color:#aaa;display:flex;align-items:center;gap:5px;white-space:nowrap;transition:all .12s}
+.sep{width:1px;height:20px;background:#333;margin:0 1px;flex-shrink:0}
+.tbtn{background:none;border:1px solid transparent;border-radius:7px;padding:5px 8px;cursor:pointer;font-size:12px;color:#aaa;display:flex;align-items:center;gap:4px;white-space:nowrap;transition:all .12s}
 .tbtn:hover{background:#2a2a2a;color:#fff}
 .tbtn.on{background:#2a2a2a;border-color:#444;color:#fff}
-.swatch{width:22px;height:22px;border-radius:50%;border:1px solid #555;cursor:pointer;flex-shrink:0}
+.swatch{width:20px;height:20px;border-radius:50%;border:1px solid #555;cursor:pointer;flex-shrink:0}
 input[type=color]{width:0;height:0;opacity:0;position:absolute;pointer-events:none}
-.szwrap{display:flex;align-items:center;gap:6px;font-size:12px;color:#888}
-.szwrap input[type=range]{width:60px;accent-color:#fff}
+.szwrap{display:flex;align-items:center;gap:5px;font-size:12px;color:#888}
+.szwrap input[type=range]{width:55px;accent-color:#fff}
 .ml{margin-left:auto}
-.dlbtn{background:#fff;color:#111;border:none;border-radius:7px;padding:7px 13px;font-size:13px;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:5px}
+.dlbtn{background:#fff;color:#111;border:none;border-radius:7px;padding:6px 11px;font-size:12px;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:4px}
 .dlbtn:hover{background:#e8e8e8}
 #file-input{display:none}
 .cwrap{flex:1;position:relative;overflow:hidden;background:#1a1a1a}
-#canvas{display:block;cursor:crosshair;touch-action:none}
-.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#fff;color:#111;padding:10px 18px;border-radius:10px;font-size:13px;font-weight:500;opacity:0;transition:opacity .25s;pointer-events:none;z-index:999;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,.4)}
+#canvas{display:block;position:absolute;top:0;left:0;transform-origin:0 0}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#fff;color:#111;padding:10px 18px;border-radius:10px;font-size:13px;font-weight:500;opacity:0;transition:opacity .25s;pointer-events:none;z-index:999;white-space:nowrap}
 .toast.show{opacity:1}
-.users-lbl{font-size:12px;color:#666;display:flex;align-items:center;gap:4px}
-.cursor-remote{position:absolute;pointer-events:none;transform:translate(-4px,-4px);transition:left .05s,top .05s}
-.cursor-dot{width:10px;height:10px;border-radius:50%;border:2px solid #fff}
-.cursor-name{font-size:10px;color:#fff;background:rgba(0,0,0,.6);padding:1px 5px;border-radius:4px;margin-top:2px;white-space:nowrap}
+.cursor-remote{position:absolute;pointer-events:none;z-index:10}
+.cursor-dot{width:10px;height:10px;border-radius:50%}
+.cursor-name{font-size:10px;color:#fff;background:rgba(0,0,0,.7);padding:1px 5px;border-radius:4px;margin-top:2px;white-space:nowrap}
 </style>
 </head>
 <body>
@@ -75,9 +72,9 @@ input[type=color]{width:0;height:0;opacity:0;position:absolute;pointer-events:no
       <div class="sess-badge">
         <span class="online-dot"></span>
         <b id="code-lbl"></b>
-        <button class="tbtn" style="padding:2px 5px;font-size:12px" onclick="copyCode()" title="Copier">📋</button>
+        <button class="tbtn" style="padding:2px 4px" onclick="copyCode()">📋</button>
       </div>
-      <div class="users-lbl">👥 <span id="users-lbl">1</span></div>
+      <span style="font-size:12px;color:#666">👥<span id="users-lbl">1</span></span>
       <div class="sep"></div>
       <button class="tbtn on" id="t-draw" onclick="setTool('draw')">✏️ Dessin</button>
       <button class="tbtn" id="t-erase" onclick="setTool('erase')">🧹 Gomme</button>
@@ -90,11 +87,11 @@ input[type=color]{width:0;height:0;opacity:0;position:absolute;pointer-events:no
         <span id="szlbl">4px</span>
       </div>
       <div class="sep"></div>
-      <button class="tbtn" onclick="clearAll()">🗑 Tout effacer</button>
-      <button class="tbtn" onclick="document.getElementById('file-input').click()">📷 Publier image</button>
+      <button class="tbtn" onclick="clearAll()">🗑</button>
+      <button class="tbtn" onclick="document.getElementById('file-input').click()">📷 Image</button>
       <input type="file" id="file-input" accept="image/*" onchange="uploadImg(event)">
-      <button class="tbtn ml" onclick="toggleBg()">☀️ Fond</button>
-      <button class="dlbtn" onclick="dlCanvas()">⬇ Télécharger</button>
+      <button class="tbtn ml" onclick="toggleBg()">☀️</button>
+      <button class="dlbtn" onclick="dlCanvas()">⬇ DL</button>
     </div>
     <div class="cwrap" id="cwrap">
       <canvas id="canvas"></canvas>
@@ -120,262 +117,299 @@ const firebaseConfig = {
 const fbApp = initializeApp(firebaseConfig);
 const db = getDatabase(fbApp);
 
-let sessionCode, myId;
+let sessionCode, myId, myName;
 let canvas, ctx, drawing=false, lx=0, ly=0;
 let color='#ffffff', brushSize=4, tool='draw', lightBg=false;
 let knownKeys=new Set();
 let currentStroke=[];
-let myName='';
+
+// pan/zoom state
+let panX=0, panY=0, scale=1;
+let isPanning=false, panStart={x:0,y:0}, panOrigin={x:0,y:0};
+let pinchDist=0;
 
 function uid(){return Math.random().toString(36).slice(2,10)}
 function genCode(){const c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let s='';for(let i=0;i<6;i++)s+=c[Math.floor(Math.random()*c.length)];return s;}
-function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2800);}
 
-const names=['Rouge','Bleu','Vert','Violet','Orange','Rose','Cyan','Jaune'];
-const colors=['#ef4444','#3b82f6','#22c55e','#a855f7','#f97316','#ec4899','#06b6d4','#eab308'];
+const names=['Rouge','Bleu','Vert','Violet','Orange','Rose'];
+const cols=['#ef4444','#3b82f6','#22c55e','#a855f7','#f97316','#ec4899'];
 
-window.createSession = function(){
-  const code = genCode();
-  openCanvas(code);
-}
-
-window.joinSession = function(){
-  const v = document.getElementById('join-inp').value.trim().toUpperCase();
-  const e = document.getElementById('join-err');
-  if(v.length !== 6){e.textContent='Code invalide — 6 caractères requis';return;}
-  e.textContent='';
-  openCanvas(v);
-}
-
-document.getElementById('join-inp').addEventListener('keydown', e=>{if(e.key==='Enter') window.joinSession()});
+window.createSession=()=>openCanvas(genCode());
+window.joinSession=function(){
+  const v=document.getElementById('join-inp').value.trim().toUpperCase();
+  const e=document.getElementById('join-err');
+  if(v.length!==6){e.textContent='Code invalide — 6 caractères';return;}
+  e.textContent=''; openCanvas(v);
+};
+document.getElementById('join-inp').addEventListener('keydown',e=>{if(e.key==='Enter')window.joinSession()});
 
 function openCanvas(code){
-  sessionCode = code;
-  myId = uid();
-  const idx = Math.floor(Math.random()*names.length);
-  myName = names[idx];
-
-  document.getElementById('code-lbl').textContent = code;
+  sessionCode=code; myId=uid();
+  const i=Math.floor(Math.random()*names.length); myName=names[i];
+  document.getElementById('code-lbl').textContent=code;
   document.getElementById('home').classList.remove('active');
   document.getElementById('canvas-screen').classList.add('active');
   initCanvas();
-  loadExistingStrokes();
-  subscribeStrokes();
+  loadThenSubscribe();
   trackPresence();
   trackCursors();
   toast('Session '+code+' — partagez le code !');
 }
 
 function initCanvas(){
-  canvas = document.getElementById('canvas');
-  const wrap = document.getElementById('cwrap');
-  canvas.width = wrap.clientWidth || window.innerWidth;
-  canvas.height = wrap.clientHeight || window.innerHeight - 60;
-  ctx = canvas.getContext('2d');
-  ctx.fillStyle = '#1a1a1a';
+  canvas=document.getElementById('canvas');
+  const wrap=document.getElementById('cwrap');
+  canvas.width=3000; canvas.height=3000;
+  ctx=canvas.getContext('2d');
+  ctx.fillStyle='#1a1a1a';
   ctx.fillRect(0,0,canvas.width,canvas.height);
-  canvas.addEventListener('mousedown', startDraw);
-  canvas.addEventListener('mousemove', doDraw);
-  canvas.addEventListener('mouseup', stopDraw);
-  canvas.addEventListener('mouseleave', stopDraw);
-  canvas.addEventListener('mousemove', sendCursor);
-  canvas.addEventListener('touchstart', e=>{e.preventDefault();startDraw(e.touches[0])},{passive:false});
-  canvas.addEventListener('touchmove', e=>{e.preventDefault();doDraw(e.touches[0]);sendCursorTouch(e.touches[0])},{passive:false});
-  canvas.addEventListener('touchend', stopDraw);
-  canvas.addEventListener('click', clickText);
+  updateTransform();
+  setupPointerEvents();
+  setupTouchEvents();
 }
 
-function pos(e){const r=canvas.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top};}
-
-function startDraw(e){
-  if(tool==='text') return;
-  drawing=true;
-  const p=pos(e); lx=p.x; ly=p.y;
-  ctx.beginPath();
-  ctx.arc(p.x,p.y,brushSize/2,0,Math.PI*2);
-  ctx.fillStyle = tool==='erase'?(lightBg?'#f8f8f8':'#1a1a1a'):color;
-  ctx.fill();
+function updateTransform(){
+  canvas.style.transform=`translate(${panX}px,${panY}px) scale(${scale})`;
 }
 
-function doDraw(e){
-  if(!drawing) return;
-  const p=pos(e);
-  const seg={x1:lx,y1:ly,x2:p.x,y2:p.y,c:tool==='erase'?(lightBg?'#f8f8f8':'#1a1a1a'):color,s:brushSize};
-  drawSeg(seg);
-  currentStroke.push(seg);
-  lx=p.x; ly=p.y;
+// Convert screen coords to canvas coords
+function toCanvas(ex,ey){
+  const r=canvas.getBoundingClientRect();
+  return{x:(ex-r.left)/scale, y:(ey-r.top)/scale};
+}
+
+function setupPointerEvents(){
+  canvas.addEventListener('mousedown',e=>{
+    if(tool==='text') return;
+    drawing=true;
+    const p=toCanvas(e.clientX,e.clientY); lx=p.x; ly=p.y;
+    ctx.beginPath(); ctx.arc(p.x,p.y,brushSize/2,0,Math.PI*2);
+    ctx.fillStyle=tool==='erase'?(lightBg?'#f8f8f8':'#1a1a1a'):color;
+    ctx.fill();
+  });
+  canvas.addEventListener('mousemove',e=>{
+    if(!drawing) return;
+    const p=toCanvas(e.clientX,e.clientY);
+    const seg={x1:lx,y1:ly,x2:p.x,y2:p.y,c:tool==='erase'?(lightBg?'#f8f8f8':'#1a1a1a'):color,s:brushSize};
+    drawSeg(seg); currentStroke.push(seg); lx=p.x; ly=p.y;
+    sendCursorPos(p.x,p.y);
+  });
+  canvas.addEventListener('mouseup',stopDraw);
+  canvas.addEventListener('mouseleave',stopDraw);
+  canvas.addEventListener('click',e=>{
+    if(tool!=='text') return;
+    const p=toCanvas(e.clientX,e.clientY);
+    const txt=prompt('Texte :'); if(!txt) return;
+    const fs=Math.max(16,brushSize*4);
+    ctx.font=`${fs}px system-ui,sans-serif`; ctx.fillStyle=color;
+    ctx.fillText(txt,p.x,p.y);
+    push(ref(db,`sessions/${sessionCode}/strokes`),{type:'text',text:txt,x:p.x,y:p.y,c:color,s:fs,by:myId});
+  });
+}
+
+function setupTouchEvents(){
+  const wrap=document.getElementById('cwrap');
+  wrap.addEventListener('touchstart',e=>{
+    if(e.touches.length===1 && tool!=='text'){
+      // single finger = draw
+      e.preventDefault();
+      drawing=true;
+      const p=toCanvas(e.touches[0].clientX,e.touches[0].clientY);
+      lx=p.x; ly=p.y;
+      ctx.beginPath(); ctx.arc(p.x,p.y,brushSize/2,0,Math.PI*2);
+      ctx.fillStyle=tool==='erase'?(lightBg?'#f8f8f8':'#1a1a1a'):color;
+      ctx.fill();
+    } else if(e.touches.length===2){
+      // two fingers = pan + pinch
+      e.preventDefault();
+      drawing=false; currentStroke=[];
+      isPanning=true;
+      const cx=(e.touches[0].clientX+e.touches[1].clientX)/2;
+      const cy=(e.touches[0].clientY+e.touches[1].clientY)/2;
+      panStart={x:cx,y:cy}; panOrigin={x:panX,y:panY};
+      pinchDist=Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY);
+    }
+  },{passive:false});
+
+  wrap.addEventListener('touchmove',e=>{
+    if(e.touches.length===1 && drawing){
+      e.preventDefault();
+      const p=toCanvas(e.touches[0].clientX,e.touches[0].clientY);
+      const seg={x1:lx,y1:ly,x2:p.x,y2:p.y,c:tool==='erase'?(lightBg?'#f8f8f8':'#1a1a1a'):color,s:brushSize};
+      drawSeg(seg); currentStroke.push(seg); lx=p.x; ly=p.y;
+    } else if(e.touches.length===2 && isPanning){
+      e.preventDefault();
+      // pan
+      const cx=(e.touches[0].clientX+e.touches[1].clientX)/2;
+      const cy=(e.touches[0].clientY+e.touches[1].clientY)/2;
+      panX=panOrigin.x+(cx-panStart.x);
+      panY=panOrigin.y+(cy-panStart.y);
+      // pinch zoom
+      const dist=Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY);
+      const delta=dist/pinchDist;
+      scale=Math.min(4,Math.max(0.2,scale*delta));
+      pinchDist=dist;
+      updateTransform();
+    }
+  },{passive:false});
+
+  wrap.addEventListener('touchend',e=>{
+    if(e.touches.length===0){
+      if(drawing && currentStroke.length){
+        push(ref(db,`sessions/${sessionCode}/strokes`),{type:'path',segs:JSON.stringify(currentStroke),by:myId});
+        currentStroke=[];
+      }
+      drawing=false; isPanning=false;
+    } else if(e.touches.length===1){
+      isPanning=false;
+    }
+  },{passive:false});
 }
 
 function stopDraw(){
-  if(!drawing || !currentStroke.length){drawing=false;return;}
+  if(!drawing||!currentStroke.length){drawing=false;return;}
   drawing=false;
-  push(ref(db,`sessions/${sessionCode}/strokes`), {type:'path',segs:JSON.stringify(currentStroke),by:myId});
+  push(ref(db,`sessions/${sessionCode}/strokes`),{type:'path',segs:JSON.stringify(currentStroke),by:myId});
   currentStroke=[];
 }
 
 function drawSeg(seg){
-  ctx.beginPath();
-  ctx.moveTo(seg.x1,seg.y1);
-  ctx.lineTo(seg.x2,seg.y2);
-  ctx.strokeStyle=seg.c;
-  ctx.lineWidth=seg.s;
-  ctx.lineCap='round';
-  ctx.lineJoin='round';
+  ctx.beginPath(); ctx.moveTo(seg.x1,seg.y1); ctx.lineTo(seg.x2,seg.y2);
+  ctx.strokeStyle=seg.c; ctx.lineWidth=seg.s; ctx.lineCap='round'; ctx.lineJoin='round';
   ctx.stroke();
 }
 
-function clickText(e){
-  if(tool!=='text') return;
-  const p=pos(e);
-  const txt=prompt('Texte à ajouter :');
-  if(!txt) return;
-  const fs=Math.max(16,brushSize*4);
-  ctx.font=`${fs}px system-ui,sans-serif`;
-  ctx.fillStyle=color;
-  ctx.fillText(txt,p.x,p.y);
-  push(ref(db,`sessions/${sessionCode}/strokes`), {type:'text',text:txt,x:p.x,y:p.y,c:color,s:fs,by:myId});
-}
-
-function loadExistingStrokes(){
-  onValue(ref(db,`sessions/${sessionCode}/strokes`), snap=>{
-    if(!snap.exists()) return;
-    ctx.fillStyle = lightBg?'#f8f8f8':'#1a1a1a';
+// Load all existing strokes first, then subscribe to new ones
+function loadThenSubscribe(){
+  onValue(ref(db,`sessions/${sessionCode}/strokes`),snap=>{
+    ctx.fillStyle=lightBg?'#f8f8f8':'#1a1a1a';
     ctx.fillRect(0,0,canvas.width,canvas.height);
-    snap.forEach(child=>{
-      knownKeys.add(child.key);
-      applyStroke(child.val());
+    knownKeys.clear();
+    if(snap.exists()){
+      snap.forEach(child=>{knownKeys.add(child.key); applyStroke(child.val());});
+    }
+    // Now subscribe to new strokes only
+    onChildAdded(ref(db,`sessions/${sessionCode}/strokes`),snap2=>{
+      if(knownKeys.has(snap2.key)) return;
+      knownKeys.add(snap2.key);
+      const d=snap2.val();
+      if(d.by===myId) return;
+      applyStroke(d);
     });
-  }, {onlyOnce:true});
-}
-
-function subscribeStrokes(){
-  onChildAdded(ref(db,`sessions/${sessionCode}/strokes`), snap=>{
-    if(knownKeys.has(snap.key)) return;
-    knownKeys.add(snap.key);
-    const d=snap.val();
-    if(d.by===myId) return;
-    applyStroke(d);
-  });
+  },{onlyOnce:true});
 }
 
 function applyStroke(d){
-  if(d.type==='path'){
-    JSON.parse(d.segs).forEach(seg=>drawSeg(seg));
-  } else if(d.type==='text'){
-    ctx.font=`${d.s}px system-ui,sans-serif`;
-    ctx.fillStyle=d.c;
+  if(d.type==='path') JSON.parse(d.segs).forEach(seg=>drawSeg(seg));
+  else if(d.type==='text'){
+    ctx.font=`${d.s}px system-ui,sans-serif`; ctx.fillStyle=d.c;
     ctx.fillText(d.text,d.x,d.y);
   } else if(d.type==='clear'){
     ctx.fillStyle=lightBg?'#f8f8f8':'#1a1a1a';
     ctx.fillRect(0,0,canvas.width,canvas.height);
   } else if(d.type==='image'){
-    const img=new Image();
-    img.onload=()=>ctx.drawImage(img,d.x,d.y,d.w,d.h);
-    img.src=d.src;
+    const img=new Image(); img.onload=()=>ctx.drawImage(img,d.x,d.y,d.w,d.h); img.src=d.src;
   }
 }
 
 function trackPresence(){
-  const myRef = ref(db,`sessions/${sessionCode}/users/${myId}`);
-  set(myRef, {name:myName, online:true});
-  onDisconnect(myRef).remove();
-  onValue(ref(db,`sessions/${sessionCode}/users`), snap=>{
-    document.getElementById('users-lbl').textContent = snap.exists()?Object.keys(snap.val()).length:1;
+  const myRef=ref(db,`sessions/${sessionCode}/users/${myId}`);
+  set(myRef,{name:myName,online:true}); onDisconnect(myRef).remove();
+  onValue(ref(db,`sessions/${sessionCode}/users`),snap=>{
+    document.getElementById('users-lbl').textContent=snap.exists()?Object.keys(snap.val()).length:1;
   });
 }
 
 const remoteCursors={};
 function trackCursors(){
-  onValue(ref(db,`sessions/${sessionCode}/cursors`), snap=>{
+  onValue(ref(db,`sessions/${sessionCode}/cursors`),snap=>{
     if(!snap.exists()) return;
+    const wrap=document.getElementById('cwrap');
     snap.forEach(child=>{
       if(child.key===myId) return;
       const d=child.val();
       let el=remoteCursors[child.key];
       if(!el){
-        el=document.createElement('div');
-        el.className='cursor-remote';
+        el=document.createElement('div'); el.className='cursor-remote';
         el.innerHTML=`<div class="cursor-dot" style="background:${d.color||'#fff'}"></div><div class="cursor-name">${d.name||'?'}</div>`;
-        document.getElementById('cwrap').appendChild(el);
-        remoteCursors[child.key]=el;
+        wrap.appendChild(el); remoteCursors[child.key]=el;
       }
-      el.style.left=d.x+'px';
-      el.style.top=d.y+'px';
+      // convert canvas coords back to screen-relative wrap coords
+      const sx=d.x*scale+panX; const sy=d.y*scale+panY;
+      el.style.left=sx+'px'; el.style.top=sy+'px';
     });
   });
 }
 
-let lastCursorSend=0;
-function sendCursor(e){
-  const now=Date.now();
-  if(now-lastCursorSend<50) return;
-  lastCursorSend=now;
-  const p=pos(e);
-  set(ref(db,`sessions/${sessionCode}/cursors/${myId}`),{x:p.x,y:p.y,name:myName,color:colors[names.indexOf(myName)]||'#fff'});
+let lastCS=0;
+function sendCursorPos(cx,cy){
+  const now=Date.now(); if(now-lastCS<60) return; lastCS=now;
+  const i=names.indexOf(myName);
+  set(ref(db,`sessions/${sessionCode}/cursors/${myId}`),{x:cx,y:cy,name:myName,color:cols[i]||'#fff'});
 }
-function sendCursorTouch(e){sendCursor(e);}
 
 window.setTool=function(t){
   tool=t;
   document.querySelectorAll('.tbtn[id^="t-"]').forEach(b=>b.classList.remove('on'));
-  const el=document.getElementById('t-'+t);
-  if(el) el.classList.add('on');
+  const el=document.getElementById('t-'+t); if(el) el.classList.add('on');
   canvas.style.cursor=t==='erase'?'cell':t==='text'?'text':'crosshair';
-}
-
-window.setColor=function(v){
-  color=v;
-  document.getElementById('swatch').style.background=v;
-}
-
+};
+window.setColor=function(v){color=v;document.getElementById('swatch').style.background=v;};
 window.clearAll=function(){
-  if(!confirm('Effacer le canvas pour tout le monde ?')) return;
-  ctx.fillStyle=lightBg?'#f8f8f8':'#1a1a1a';
-  ctx.fillRect(0,0,canvas.width,canvas.height);
-  remove(ref(db,`sessions/${sessionCode}/strokes`));
-  knownKeys.clear();
-  push(ref(db,`sessions/${sessionCode}/strokes`),{type:'clear',by:myId});
-}
-
+  if(!confirm('Effacer pour tout le monde ?')) return;
+  ctx.fillStyle=lightBg?'#f8f8f8':'#1a1a1a'; ctx.fillRect(0,0,canvas.width,canvas.height);
+  remove(ref(db,`sessions/${sessionCode}/strokes`)); knownKeys.clear();
+};
 window.toggleBg=function(){
   lightBg=!lightBg;
   document.getElementById('cwrap').style.background=lightBg?'#f8f8f8':'#1a1a1a';
-  ctx.fillStyle=lightBg?'#f8f8f8':'#1a1a1a';
-  ctx.fillRect(0,0,canvas.width,canvas.height);
-  loadExistingStrokes();
-}
+  ctx.fillStyle=lightBg?'#f8f8f8':'#1a1a1a'; ctx.fillRect(0,0,canvas.width,canvas.height);
+  loadThenSubscribe();
+};
 
 window.uploadImg=function(e){
   const file=e.target.files[0]; if(!file) return;
+  toast('Compression en cours...');
   const reader=new FileReader();
   reader.onload=ev=>{
     const img=new Image();
     img.onload=()=>{
-      const maxW=Math.min(300,canvas.width*0.45);
-      const scale=Math.min(maxW/img.width,maxW/img.height,1);
-      const w=img.width*scale, h=img.height*scale;
-      const x=(canvas.width-w)/2, y=(canvas.height-h)/2;
-      ctx.drawImage(img,x,y,w,h);
-      push(ref(db,`sessions/${sessionCode}/strokes`),{type:'image',src:ev.target.result,x,y,w,h,by:myId});
-      toast('Image publiée pour tout le monde !');
+      // Resize to max 1600px on longest side, quality 0.92
+      const MAX=1600;
+      let w=img.width, h=img.height;
+      if(w>MAX||h>MAX){
+        if(w>h){h=Math.round(h*MAX/w);w=MAX;}
+        else{w=Math.round(w*MAX/h);h=MAX;}
+      }
+      const tmp=document.createElement('canvas');
+      tmp.width=w; tmp.height=h;
+      tmp.getContext('2d').drawImage(img,0,0,w,h);
+      const src=tmp.toDataURL('image/jpeg',0.92);
+      // Place centered on canvas
+      const maxW=Math.min(800,canvas.width*0.6);
+      const sc2=Math.min(maxW/w,maxW/h,1);
+      const fw=w*sc2, fh=h*sc2;
+      const x=(canvas.width-fw)/2, y=(canvas.height-fh)/2;
+      ctx.drawImage(img,x,y,fw,fh);
+      push(ref(db,`sessions/${sessionCode}/strokes`),{type:'image',src,x,y,w:fw,h:fh,by:myId});
+      toast('Image publiée !');
     };
     img.src=ev.target.result;
   };
   reader.readAsDataURL(file);
   e.target.value='';
-}
+};
 
 window.dlCanvas=function(){
   const link=document.createElement('a');
   link.download='canvas-'+sessionCode+'.png';
   link.href=canvas.toDataURL('image/png');
-  link.click();
-  toast('Canvas téléchargé !');
-}
-
+  link.click(); toast('Téléchargé !');
+};
 window.copyCode=function(){
   navigator.clipboard.writeText(sessionCode).then(()=>toast('Code copié : '+sessionCode));
-}
+};
 </script>
 </body>
 </html>
