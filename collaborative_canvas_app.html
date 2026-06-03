@@ -1,0 +1,314 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans)}
+#app{min-height:600px}
+.screen{display:none}
+.screen.active{display:flex;flex-direction:column}
+#home-screen{align-items:center;justify-content:center;min-height:600px;gap:2rem;padding:2rem}
+.logo{text-align:center}
+.logo h1{font-size:28px;font-weight:500;color:var(--color-text-primary);margin-bottom:6px}
+.logo p{font-size:15px;color:var(--color-text-secondary)}
+.btn-group{display:flex;flex-direction:column;gap:12px;width:100%;max-width:320px}
+.btn-primary{background:var(--color-text-primary);color:var(--color-background-primary);border:none;padding:14px 24px;border-radius:var(--border-radius-lg);font-size:15px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:opacity .15s}
+.btn-primary:hover{opacity:.85}
+.btn-secondary{background:var(--color-background-primary);color:var(--color-text-primary);border:0.5px solid var(--color-border-secondary);padding:14px 24px;border-radius:var(--border-radius-lg);font-size:15px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:background .15s}
+.btn-secondary:hover{background:var(--color-background-secondary)}
+.join-form{display:flex;flex-direction:column;gap:10px;width:100%;max-width:320px}
+.join-form input{padding:12px 16px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);font-size:15px;background:var(--color-background-primary);color:var(--color-text-primary);outline:none}
+.join-form input:focus{border-color:var(--color-border-primary)}
+.back-btn{background:none;border:none;color:var(--color-text-secondary);font-size:14px;cursor:pointer;display:flex;align-items:center;gap:4px;padding:4px 0}
+.back-btn:hover{color:var(--color-text-primary)}
+#canvas-screen{min-height:600px}
+.toolbar{display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:0.5px solid var(--color-border-tertiary);background:var(--color-background-primary);flex-wrap:wrap}
+.session-badge{background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:5px 10px;font-size:12px;color:var(--color-text-secondary);display:flex;align-items:center;gap:6px}
+.session-badge span{font-weight:500;color:var(--color-text-primary);letter-spacing:.05em}
+.copy-btn{background:none;border:none;cursor:pointer;color:var(--color-text-secondary);font-size:14px;padding:2px}
+.copy-btn:hover{color:var(--color-text-primary)}
+.tool-sep{width:1px;height:24px;background:var(--color-border-tertiary);margin:0 2px}
+.tool-btn{background:none;border:0.5px solid transparent;border-radius:var(--border-radius-md);padding:7px 8px;cursor:pointer;font-size:14px;color:var(--color-text-secondary);display:flex;align-items:center;gap:5px;transition:all .12s;white-space:nowrap}
+.tool-btn:hover{background:var(--color-background-secondary);color:var(--color-text-primary)}
+.tool-btn.active{background:var(--color-background-secondary);border-color:var(--color-border-secondary);color:var(--color-text-primary)}
+.color-picker-wrap{display:flex;align-items:center;gap:6px}
+.color-swatch{width:22px;height:22px;border-radius:50%;border:0.5px solid var(--color-border-secondary);cursor:pointer}
+input[type=color]{width:0;height:0;opacity:0;position:absolute}
+.size-control{display:flex;align-items:center;gap:4px;font-size:12px;color:var(--color-text-secondary)}
+.size-control input[type=range]{width:60px}
+.canvas-wrap{position:relative;flex:1;overflow:hidden;background:#1a1a1a}
+#main-canvas{display:block;cursor:crosshair;touch-action:none}
+.canvas-wrap.light-bg{background:#f8f8f8}
+.bg-toggle{margin-left:auto}
+.upload-input{display:none}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--color-text-primary);color:var(--color-background-primary);padding:10px 18px;border-radius:var(--border-radius-lg);font-size:13px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999}
+.toast.show{opacity:1}
+.dl-btn{background:var(--color-text-primary);color:var(--color-background-primary);border:none;border-radius:var(--border-radius-md);padding:7px 12px;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:5px}
+.dl-btn:hover{opacity:.85}
+</style>
+
+<div id="app">
+  <div id="home-screen" class="screen active">
+    <div class="logo">
+      <h1>Canvas collab</h1>
+      <p>Créez ou rejoignez un espace de dessin partagé</p>
+    </div>
+    <div id="home-btns" class="btn-group">
+      <button class="btn-primary" onclick="createSession()"><i class="ti ti-plus" aria-hidden="true"></i> Créer une session</button>
+      <button class="btn-secondary" onclick="showJoinForm()"><i class="ti ti-door-enter" aria-hidden="true"></i> Rejoindre une session</button>
+    </div>
+    <div id="join-form-area" style="display:none;width:100%;max-width:320px">
+      <button class="back-btn" onclick="hideJoinForm()"><i class="ti ti-arrow-left" aria-hidden="true"></i> Retour</button>
+      <br>
+      <div class="join-form">
+        <input type="text" id="code-input" placeholder="Code de session (ex: AB12CD)" maxlength="6" style="text-transform:uppercase;letter-spacing:.1em;font-size:18px;text-align:center">
+        <button class="btn-primary" onclick="joinSession()"><i class="ti ti-door-enter" aria-hidden="true"></i> Rejoindre</button>
+      </div>
+    </div>
+    <div id="err-msg" style="color:var(--color-text-danger,#c0392b);font-size:13px;display:none"></div>
+  </div>
+
+  <div id="canvas-screen" class="screen">
+    <div class="toolbar" role="toolbar" aria-label="Outils de dessin">
+      <div class="session-badge">
+        <i class="ti ti-users" aria-hidden="true" style="font-size:14px"></i>
+        Session : <span id="session-code-display"></span>
+        <button class="copy-btn" onclick="copyCode()" title="Copier le code"><i class="ti ti-copy" aria-hidden="true"></i></button>
+      </div>
+      <div class="tool-sep"></div>
+      <button class="tool-btn active" id="tool-draw" onclick="setTool('draw')"><i class="ti ti-pencil" aria-hidden="true"></i> Dessin</button>
+      <button class="tool-btn" id="tool-erase" onclick="setTool('erase')"><i class="ti ti-eraser" aria-hidden="true"></i> Gomme</button>
+      <button class="tool-btn" id="tool-text" onclick="setTool('text')"><i class="ti ti-cursor-text" aria-hidden="true"></i> Texte</button>
+      <div class="tool-sep"></div>
+      <div class="color-picker-wrap">
+        <div class="color-swatch" id="color-swatch" style="background:#ffffff" onclick="document.getElementById('color-real').click()"></div>
+        <input type="color" id="color-real" value="#ffffff" oninput="setColor(this.value)">
+      </div>
+      <div class="size-control">
+        <i class="ti ti-circle-filled" aria-hidden="true" style="font-size:10px"></i>
+        <input type="range" min="1" max="30" value="4" id="brush-size" oninput="updateSize(this.value)">
+        <span id="size-label">4px</span>
+      </div>
+      <div class="tool-sep"></div>
+      <button class="tool-btn" onclick="clearCanvas()"><i class="ti ti-trash" aria-hidden="true"></i> Effacer tout</button>
+      <button class="tool-btn" onclick="document.getElementById('img-upload').click()"><i class="ti ti-photo" aria-hidden="true"></i> Publier image</button>
+      <input type="file" id="img-upload" class="upload-input" accept="image/*" onchange="uploadImage(event)">
+      <div class="tool-sep"></div>
+      <button class="tool-btn bg-toggle" onclick="toggleBg()"><i class="ti ti-sun" aria-hidden="true"></i> Fond</button>
+      <button class="dl-btn" onclick="downloadCanvas()"><i class="ti ti-download" aria-hidden="true"></i> Télécharger</button>
+    </div>
+    <div class="canvas-wrap" id="canvas-wrap">
+      <canvas id="main-canvas"></canvas>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<input type="text" id="text-input-hidden" style="position:fixed;left:-9999px;opacity:0" aria-hidden="true">
+
+<script>
+const sessions = {};
+let currentSession = null;
+let currentTool = 'draw';
+let drawing = false;
+let lastX = 0, lastY = 0;
+let currentColor = '#ffffff';
+let brushSize = 4;
+let lightBg = false;
+let textMode = false;
+
+function genCode(){
+  const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let c='';for(let i=0;i<6;i++)c+=chars[Math.floor(Math.random()*chars.length)];
+  return c;
+}
+
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+function createSession(){
+  const code=genCode();
+  const imgData=null;
+  sessions[code]={strokes:[],images:[]};
+  openCanvas(code);
+}
+
+function showJoinForm(){
+  document.getElementById('home-btns').style.display='none';
+  document.getElementById('join-form-area').style.display='block';
+  document.getElementById('code-input').focus();
+}
+
+function hideJoinForm(){
+  document.getElementById('home-btns').style.display='flex';
+  document.getElementById('join-form-area').style.display='none';
+  document.getElementById('err-msg').style.display='none';
+}
+
+function joinSession(){
+  const code=document.getElementById('code-input').value.trim().toUpperCase();
+  const err=document.getElementById('err-msg');
+  if(code.length!==6){err.textContent='Code invalide (6 caractères)';err.style.display='block';return;}
+  if(!sessions[code]){
+    sessions[code]={strokes:[],images:[]};
+    err.style.display='none';
+  }
+  openCanvas(code);
+}
+
+function openCanvas(code){
+  currentSession=code;
+  document.getElementById('session-code-display').textContent=code;
+  document.getElementById('home-screen').classList.remove('active');
+  document.getElementById('canvas-screen').classList.add('active');
+  initCanvas();
+  redrawCanvas();
+  showToast('Session ' + code + ' ouverte !');
+}
+
+function copyCode(){
+  const code=document.getElementById('session-code-display').textContent;
+  navigator.clipboard.writeText(code).then(()=>showToast('Code copié !'));
+}
+
+let canvas,ctx;
+function initCanvas(){
+  canvas=document.getElementById('main-canvas');
+  const wrap=document.getElementById('canvas-wrap');
+  canvas.width=wrap.clientWidth||680;
+  canvas.height=Math.max(500,wrap.clientHeight||500);
+  ctx=canvas.getContext('2d');
+  ctx.fillStyle=lightBg?'#f8f8f8':'#1a1a1a';
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+  canvas.onmousedown=startDraw;
+  canvas.onmousemove=draw;
+  canvas.onmouseup=endDraw;
+  canvas.onmouseleave=endDraw;
+  canvas.ontouchstart=e=>{e.preventDefault();startDraw(e.touches[0])};
+  canvas.ontouchmove=e=>{e.preventDefault();draw(e.touches[0])};
+  canvas.ontouchend=endDraw;
+  canvas.onclick=handleClick;
+}
+
+function getPos(e){
+  const r=canvas.getBoundingClientRect();
+  return{x:e.clientX-r.left,y:e.clientY-r.top};
+}
+
+function setTool(t){
+  currentTool=t;
+  document.querySelectorAll('.tool-btn[id^="tool-"]').forEach(b=>b.classList.remove('active'));
+  const el=document.getElementById('tool-'+t);
+  if(el)el.classList.add('active');
+  canvas.style.cursor=t==='erase'?'cell':t==='text'?'text':'crosshair';
+}
+
+function setColor(v){
+  currentColor=v;
+  document.getElementById('color-swatch').style.background=v;
+}
+
+function updateSize(v){
+  brushSize=parseInt(v);
+  document.getElementById('size-label').textContent=v+'px';
+}
+
+function startDraw(e){
+  if(currentTool==='text')return;
+  drawing=true;
+  const p=getPos(e);
+  lastX=p.x;lastY=p.y;
+  ctx.beginPath();
+  ctx.arc(p.x,p.y,brushSize/2,0,Math.PI*2);
+  ctx.fillStyle=currentTool==='erase'?(lightBg?'#f8f8f8':'#1a1a1a'):currentColor;
+  ctx.fill();
+}
+
+function draw(e){
+  if(!drawing)return;
+  const p=getPos(e);
+  ctx.beginPath();
+  ctx.moveTo(lastX,lastY);
+  ctx.lineTo(p.x,p.y);
+  ctx.strokeStyle=currentTool==='erase'?(lightBg?'#f8f8f8':'#1a1a1a'):currentColor;
+  ctx.lineWidth=brushSize;
+  ctx.lineCap='round';
+  ctx.lineJoin='round';
+  ctx.stroke();
+  lastX=p.x;lastY=p.y;
+}
+
+function endDraw(){drawing=false;}
+
+function handleClick(e){
+  if(currentTool!=='text')return;
+  const p=getPos(e);
+  const txt=prompt('Entrez votre texte :');
+  if(txt){
+    ctx.font=`${Math.max(16,brushSize*3)}px ${getComputedStyle(document.body).getPropertyValue('--font-sans')||'sans-serif'}`;
+    ctx.fillStyle=currentColor;
+    ctx.fillText(txt,p.x,p.y);
+  }
+}
+
+function clearCanvas(){
+  if(!confirm('Effacer tout le canvas ?'))return;
+  ctx.fillStyle=lightBg?'#f8f8f8':'#1a1a1a';
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+  if(sessions[currentSession]){sessions[currentSession].images=[];}
+}
+
+function toggleBg(){
+  lightBg=!lightBg;
+  document.getElementById('canvas-wrap').style.background=lightBg?'#f8f8f8':'#1a1a1a';
+  const prevData=ctx.getImageData(0,0,canvas.width,canvas.height);
+  ctx.fillStyle=lightBg?'#f8f8f8':'#1a1a1a';
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+  redrawCanvas();
+}
+
+function redrawCanvas(){
+  if(!sessions[currentSession])return;
+  sessions[currentSession].images.forEach(item=>{
+    const img=new Image();
+    img.onload=()=>ctx.drawImage(img,item.x,item.y,item.w,item.h);
+    img.src=item.src;
+  });
+}
+
+function uploadImage(e){
+  const file=e.target.files[0];
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    const img=new Image();
+    img.onload=()=>{
+      const maxW=Math.min(320,canvas.width*0.5);
+      const scale=Math.min(maxW/img.width,maxW/img.height,1);
+      const w=img.width*scale,h=img.height*scale;
+      const x=(canvas.width-w)/2,y=(canvas.height-h)/2;
+      ctx.drawImage(img,x,y,w,h);
+      if(sessions[currentSession]){
+        sessions[currentSession].images.push({src:ev.target.result,x,y,w,h});
+      }
+      showToast('Image publiée !');
+    };
+    img.src=ev.target.result;
+  };
+  reader.readAsDataURL(file);
+  e.target.value='';
+}
+
+function downloadCanvas(){
+  const link=document.createElement('a');
+  link.download='canvas-'+currentSession+'.png';
+  link.href=canvas.toDataURL('image/png');
+  link.click();
+  showToast('Canvas téléchargé !');
+}
+
+document.getElementById('code-input').addEventListener('keydown',e=>{
+  if(e.key==='Enter')joinSession();
+});
+</script>
