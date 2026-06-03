@@ -165,6 +165,7 @@ function initCanvas(){
   ctx.fillStyle='#1a1a1a';
   ctx.fillRect(0,0,canvas.width,canvas.height);
   updateTransform();
+  setupWheelZoom();
   setupPointerEvents();
   setupTouchEvents();
 }
@@ -179,8 +180,42 @@ function toCanvas(ex,ey){
   return{x:(ex-r.left)/scale, y:(ey-r.top)/scale};
 }
 
+function setupWheelZoom(){
+  const wrap=document.getElementById('cwrap');
+  wrap.addEventListener('wheel',e=>{
+    e.preventDefault();
+    const factor=e.deltaY<0?1.1:0.9;
+    const rect=wrap.getBoundingClientRect();
+    const mx=e.clientX-rect.left;
+    const my=e.clientY-rect.top;
+    // zoom centré sur la position de la souris
+    panX=mx-(mx-panX)*factor;
+    panY=my-(my-panY)*factor;
+    scale=Math.min(8,Math.max(0.1,scale*factor));
+    updateTransform();
+  },{passive:false});
+}
+
+let spaceDown=false;
+let mouseNaving=false, mouseNavStart={x:0,y:0}, mouseNavOrigin={x:0,y:0};
+
+document.addEventListener('keydown',e=>{if(e.code==='Space'){e.preventDefault();spaceDown=true;document.getElementById('canvas').style.cursor='grab';}});
+document.addEventListener('keyup',e=>{if(e.code==='Space'){spaceDown=false;document.getElementById('canvas').style.cursor=tool==='erase'?'cell':tool==='text'?'text':'crosshair';}});
+
 function setupPointerEvents(){
-  canvas.addEventListener('mousedown',e=>{
+  const wrap=document.getElementById('cwrap');
+
+  wrap.addEventListener('mousedown',e=>{
+    // middle click OR space+click = pan
+    if(e.button===1||(e.button===0&&spaceDown)){
+      e.preventDefault();
+      mouseNaving=true;
+      mouseNavStart={x:e.clientX,y:e.clientY};
+      mouseNavOrigin={x:panX,y:panY};
+      wrap.style.cursor='grabbing';
+      return;
+    }
+    if(e.button!==0) return;
     if(tool==='text') return;
     drawing=true;
     const p=toCanvas(e.clientX,e.clientY); lx=p.x; ly=p.y;
@@ -188,17 +223,30 @@ function setupPointerEvents(){
     ctx.fillStyle=tool==='erase'?(lightBg?'#f8f8f8':'#1a1a1a'):color;
     ctx.fill();
   });
-  canvas.addEventListener('mousemove',e=>{
+
+  wrap.addEventListener('mousemove',e=>{
+    if(mouseNaving){
+      panX=mouseNavOrigin.x+(e.clientX-mouseNavStart.x);
+      panY=mouseNavOrigin.y+(e.clientY-mouseNavStart.y);
+      updateTransform(); return;
+    }
     if(!drawing) return;
     const p=toCanvas(e.clientX,e.clientY);
     const seg={x1:lx,y1:ly,x2:p.x,y2:p.y,c:tool==='erase'?(lightBg?'#f8f8f8':'#1a1a1a'):color,s:brushSize};
     drawSeg(seg); currentStroke.push(seg); lx=p.x; ly=p.y;
     sendCursorPos(p.x,p.y);
   });
-  canvas.addEventListener('mouseup',stopDraw);
-  canvas.addEventListener('mouseleave',stopDraw);
-  canvas.addEventListener('click',e=>{
-    if(tool!=='text') return;
+
+  wrap.addEventListener('mouseup',e=>{
+    if(mouseNaving){mouseNaving=false;wrap.style.cursor='';return;}
+    stopDraw();
+  });
+  wrap.addEventListener('mouseleave',e=>{
+    if(mouseNaving){mouseNaving=false;wrap.style.cursor='';return;}
+    stopDraw();
+  });
+  wrap.addEventListener('click',e=>{
+    if(tool!=='text'||mouseNaving) return;
     const p=toCanvas(e.clientX,e.clientY);
     const txt=prompt('Texte :'); if(!txt) return;
     const fs=Math.max(16,brushSize*4);
